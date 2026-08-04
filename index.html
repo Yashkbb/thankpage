@@ -27,9 +27,6 @@
   fbq('init', '1948652639102510');
   fbq('track', 'PageView');
   </script>
-  <noscript><img height="1" width="1" style="display:none"
-  src="https://www.facebook.com/tr?id=1948652639102510&ev=PageView&noscript=1"
-  /></noscript>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -265,18 +262,26 @@
   </div>
 
   <script>
+    // ── Read Cashfree return params ──
     var params = new URLSearchParams(window.location.search);
     var orderId = params.get('order_id') || params.get('cf_order_id') || ('order_' + Date.now());
+
+    // Try to read actual paid amount from Cashfree return URL.
+    // Cashfree usually returns order_amount — fallback to 99 if not present.
     var amount = parseFloat(params.get('order_amount')) || 99;
 
+    // ── Dedup key so a refresh / re-visit doesn't double count ──
     var dedupKey = 'purchase_event_fired_' + orderId;
 
     if (!sessionStorage.getItem(dedupKey)) {
+      // Meta Pixel — eventID lets this dedupe against a future server-side
+      // Conversions API event for the same order_id
       fbq('track', 'Purchase',
         { value: amount, currency: 'INR' },
         { eventID: orderId }
       );
 
+      // GA4 — purchase event
       gtag('event', 'purchase', {
         transaction_id: orderId,
         value: amount,
@@ -289,6 +294,7 @@
 
     var driveUrl = 'https://drive.google.com/drive/folders/1T_yD-PvalR9wi4WI6doCmFFGpMHL6_T_?usp=drive_link';
 
+    // Auto-redirect countdown
     var seconds = 3;
     var countdownEl = document.getElementById('countdownText');
     var interval = setInterval(function () {
